@@ -123,14 +123,39 @@ export class PostRoute {
             const { comment_id, trim_upto, starting_pos } = req.body;
             try {
                 const found = await this.model_comment.findById(comment_id, {
-                    $slice: [trim_upto, starting_pos]
+                    reply_tree: {
+                        $slice: [trim_upto, starting_pos]
+                    }
                 });
                 res.send({
                     found
                 })
             } catch (error) {
+                console.log({ error })
+            }
+        })
+
+        // delete
+        this.router.delete('/delete_comment', async (req: Request<{
+        }, {}, {
+            comment_id: string
+        }>, res: Response) => {
+            const { comment_id } = req.body;
+            try {
+                const found = await this.model_comment.findById(comment_id);
+                if (found && found.parent_comment_id) {
+                    const parent = await this.model_comment.findById(found.parent_comment_id);
+                    if (parent) {
+                        const indx = parent.reply_tree.indexOf(found.parent_comment_id)
+                        parent.reply_tree.splice(indx, 1);
+                        await parent.save();
+                    }
+                    await found.deleteOne();
+                }
+            } catch (error) {
 
             }
+            res.send('ok')
         })
     }
 }
