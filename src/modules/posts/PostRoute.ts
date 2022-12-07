@@ -15,16 +15,16 @@ export class PostRoute {
     }
 
     private init() {
-        this.router.get('/yoo', async (req: Request, res: Response) => {
-            console.log('yoo working');
-            res.send('yoo working');
+        this.router.get('/test', async (req: Request, res: Response) => {
+            console.log('test working');
+            res.send('test working');
         })
 
         this.router.post('/create_post', async (req: Request<{}, {}, t.Post>, res: Response) => {
             const { username, content } = req.body;
             try {
                 let created = await this.model_post.create({
-                    content, username
+                    content, username, reply_tree: []
                 })
                 res.send({
                     created
@@ -39,7 +39,7 @@ export class PostRoute {
             const { username, content, root_post_id, parent_comment_id } = req.body;
             try {
                 let created = await this.model_comment.create({
-                    content, username, root_post_id, parent_comment_id
+                    content, username, root_post_id, parent_comment_id, reply_tree: []
                 })
 
                 // if comment is for root post, push self into "reply_tree"
@@ -87,16 +87,36 @@ export class PostRoute {
         })
 
         this.router.post('/get_comment', async (req: Request<{}, {}, {
-            comment_id: string
+            comment_id: string,
+            level?: number
         }>, res: Response) => {
-            const { comment_id } = req.body;
+            const { comment_id, level } = req.body;
 
+            let found: t.Comment | null;
             try {
-                const found = await this.model_comment.findById(comment_id).populate('reply_tree');
+                if (level) {
+                    found = await this.model_comment.findById(comment_id).populate({
+                        path: 'reply_tree',
+                        populate: {
+                            path: 'reply_tree',
+                            populate: {
+                                path: 'reply_tree',
+                            }
+                        }
+                    });
+                } else {
+                    found = await this.model_comment.findById(comment_id).populate('reply_tree');
+
+                }
                 res.send({ found })
             } catch (error) {
                 console.log(error)
             }
         })
+
+        // get upto 5 levels of comments
+        // this.router.post('/get_nested_comments',async(req:Request, res:Response) => {
+
+        // })
     }
 }

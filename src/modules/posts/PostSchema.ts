@@ -5,7 +5,7 @@ export const PostSchema = new Schema<t.Post>({
     // owner: { type: Schema.Types.ObjectId, ref: 'user', required: true }
     username: { type: Schema.Types.String, required: true, enum: ['sam', 'max', 'lucy', 'admin'] },
     content: { type: Schema.Types.String, required: true },
-    reply_tree: [{ type: Schema.Types.ObjectId, ref: 'comment', required: false }]
+    reply_tree: [{ type: Schema.Types.ObjectId, ref: 'comment', required: false, default: [] }]
 }, { timestamps: true })
 
 export const CommentSchema = new Schema<t.Comment>({
