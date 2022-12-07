@@ -114,9 +114,23 @@ export class PostRoute {
             }
         })
 
-        // get upto 5 levels of comments
-        // this.router.post('/get_nested_comments',async(req:Request, res:Response) => {
+        // get trimmed array of comments
+        this.router.post('/get_trimmed_comments', async (req: Request<{}, {}, {
+            comment_id: string,
+            trim_upto: 3,
+            starting_pos: 1
+        }>, res: Response) => {
+            const { comment_id, trim_upto, starting_pos } = req.body;
+            try {
+                const found = await this.model_comment.findById(comment_id, {
+                    $slice: [trim_upto, starting_pos]
+                });
+                res.send({
+                    found
+                })
+            } catch (error) {
 
-        // })
+            }
+        })
     }
 }
